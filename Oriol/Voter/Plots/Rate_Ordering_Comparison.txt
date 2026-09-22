@@ -1,0 +1,9 @@
+N=500
+MFPT formula: sum((N-i)/b_i), i=1,...,N-1
+
+Increasing: MFPT=2706660.94615, ratio=3.9298119, pairwise_relaxed=True, increasing=True, decreasing=False
+Decreasing: MFPT=688750.768843, ratio=1, pairwise_relaxed=False, increasing=False, decreasing=True
+Decrease-increase (relaxed): MFPT=1851276.46969, ratio=2.6878757, pairwise_relaxed=True, increasing=False, decreasing=False
+Reverse decrease-increase (increase-decrease): MFPT=1544135.24531, ratio=2.2419361, pairwise_relaxed=False, increasing=False, decreasing=False
+Decrease-decrease (big middle jump, relaxed): MFPT=1838481.44499, ratio=2.6692986, pairwise_relaxed=True, increasing=False, decreasing=False
+Reverse decrease-decrease (decrease-increase jump): MFPT=1556930.27001, ratio=2.2605133, pairwise_relaxed=False, increasing=False, decreasing=False

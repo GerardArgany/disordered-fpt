@@ -1,0 +1,20 @@
+individual_FPT
+n=50128 mean=1132.9759 sd=730.8649 median=938.124
+Models ranked by AIC:
+  lognormal: AIC=777492.6182 BIC=777519.0852 KS=0.0128 KS_p=1.338e-07 parameters={'shape': 0.5955908949470038, 'loc': 0.0, 'scale': 947.9256585311098}
+  gamma: AIC=780651.0435 BIC=780677.5105 KS=0.0475 KS_p=7.004e-99 parameters={'shape': 2.9599991528362923, 'loc': 0.0, 'scale': 382.7622433234409}
+  weibull: AIC=785556.7415 BIC=785583.2085 KS=0.0627 KS_p=1.332e-171 parameters={'shape': 1.691327041137477, 'loc': 0.0, 'scale': 1279.0271858756605}
+  normal: AIC=803371.0869 BIC=803388.7316 KS=0.1199 KS_p=0 parameters={'loc': 1132.9759159751038, 'scale': 730.8576107807748}
+  exponential: AIC=805320.6468 BIC=805338.2914 KS=0.2246 KS_p=0 parameters={'loc': 0.0, 'scale': 1132.9759159751038}
+Power-law tail: {'distribution': 'power_law_tail', 'xmin': 2088.4664, 'alpha': 4.802379423956443, 'tail_count': 5013, 'tail_fraction': 0.10000398978614747, 'KS': 0.04732233743175984}
+
+MFPT_across_landscapes
+n=5000 mean=1133.1725 sd=253.58162 median=1110.3626
+Models ranked by AIC:
+  lognormal: AIC=69149.0846 BIC=69168.6362 KS=0.0153 KS_p=0.1923 parameters={'shape': 0.22021256451010415, 'loc': 0.0, 'scale': 1106.0295811622339}
+  gamma: AIC=69188.8778 BIC=69208.4294 KS=0.0205 KS_p=0.02932 parameters={'shape': 20.788447695988946, 'loc': 0.0, 'scale': 54.509723574217425}
+  normal: AIC=69549.2429 BIC=69562.2772 KS=0.0462 KS_p=1.041e-09 parameters={'loc': 1133.1725374454345, 'scale': 253.5562652086817}
+  weibull: AIC=70115.1983 BIC=70134.7498 KS=0.0705 KS_p=4.928e-22 parameters={'shape': 4.391869675198584, 'loc': 0.0, 'scale': 1234.3659713824386}
+  exponential: AIC=80331.7653 BIC=80344.7997 KS=0.4446 KS_p=0 parameters={'loc': 0.0, 'scale': 1133.1725374454345}
+Power-law tail: {'distribution': 'power_law_tail', 'xmin': 1344.379126, 'alpha': 9.200014775269652, 'tail_count': 900, 'tail_fraction': 0.18, 'KS': 0.0331539865846443}
+

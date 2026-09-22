@@ -1,0 +1,168 @@
+{
+  "configuration": {
+    "N": 500,
+    "samples_per_shuffle_requested": 5000,
+    "reshuffles_requested": 5000,
+    "complete_fpt_records": 50128,
+    "observed_landscapes": 5000,
+    "mean_completed_trajectories_per_landscape": 10.0256
+  },
+  "individual_FPT": {
+    "sample_count": 50128,
+    "mean": 1132.9759159751038,
+    "standard_deviation": 730.8649008037742,
+    "median": 938.124,
+    "fits": [
+      {
+        "distribution": "lognormal",
+        "parameters": {
+          "shape": 0.5955908949470038,
+          "loc": 0.0,
+          "scale": 947.9256585311098
+        },
+        "log_likelihood": -388743.3090900071,
+        "AIC": 777492.6181800142,
+        "BIC": 777519.0851850538,
+        "KS": 0.012833185173168837,
+        "KS_pvalue": 1.3376720668161982e-07
+      },
+      {
+        "distribution": "gamma",
+        "parameters": {
+          "shape": 2.9599991528362923,
+          "loc": 0.0,
+          "scale": 382.7622433234409
+        },
+        "log_likelihood": -390322.5217628425,
+        "AIC": 780651.043525685,
+        "BIC": 780677.5105307245,
+        "KS": 0.047537304611272646,
+        "KS_pvalue": 7.003516866624329e-99
+      },
+      {
+        "distribution": "weibull",
+        "parameters": {
+          "shape": 1.691327041137477,
+          "loc": 0.0,
+          "scale": 1279.0271858756605
+        },
+        "log_likelihood": -392775.3707588822,
+        "AIC": 785556.7415177644,
+        "BIC": 785583.208522804,
+        "KS": 0.0626704703967641,
+        "KS_pvalue": 1.3317155523976377e-171
+      },
+      {
+        "distribution": "normal",
+        "parameters": {
+          "loc": 1132.9759159751038,
+          "scale": 730.8576107807748
+        },
+        "log_likelihood": -401683.543474318,
+        "AIC": 803371.086948636,
+        "BIC": 803388.7316186624,
+        "KS": 0.1199014146793817,
+        "KS_pvalue": 0.0
+      },
+      {
+        "distribution": "exponential",
+        "parameters": {
+          "loc": 0.0,
+          "scale": 1132.9759159751038
+        },
+        "log_likelihood": -402658.32338149706,
+        "AIC": 805320.6467629941,
+        "BIC": 805338.2914330205,
+        "KS": 0.22458068660723593,
+        "KS_pvalue": 0.0
+      }
+    ],
+    "power_law_tail": {
+      "distribution": "power_law_tail",
+      "xmin": 2088.4664,
+      "alpha": 4.802379423956443,
+      "tail_count": 5013,
+      "tail_fraction": 0.10000398978614747,
+      "KS": 0.04732233743175984
+    }
+  },
+  "MFPT_across_landscapes": {
+    "sample_count": 5000,
+    "mean": 1133.1725374454345,
+    "standard_deviation": 253.58162463918055,
+    "median": 1110.362583335,
+    "fits": [
+      {
+        "distribution": "lognormal",
+        "parameters": {
+          "shape": 0.22021256451010415,
+          "loc": 0.0,
+          "scale": 1106.0295811622339
+        },
+        "log_likelihood": -34571.542321115594,
+        "AIC": 69149.08464223119,
+        "BIC": 69168.63622180544,
+        "KS": 0.015267371412551162,
+        "KS_pvalue": 0.1922679953475075
+      },
+      {
+        "distribution": "gamma",
+        "parameters": {
+          "shape": 20.788447695988946,
+          "loc": 0.0,
+          "scale": 54.509723574217425
+        },
+        "log_likelihood": -34591.43891081045,
+        "AIC": 69188.8778216209,
+        "BIC": 69208.42940119516,
+        "KS": 0.02051481978729841,
+        "KS_pvalue": 0.029324882123863638
+      },
+      {
+        "distribution": "normal",
+        "parameters": {
+          "loc": 1133.1725374454345,
+          "scale": 253.5562652086817
+        },
+        "log_likelihood": -34772.62142546901,
+        "AIC": 69549.24285093803,
+        "BIC": 69562.27723732086,
+        "KS": 0.04619067319854331,
+        "KS_pvalue": 1.0414749583835682e-09
+      },
+      {
+        "distribution": "weibull",
+        "parameters": {
+          "shape": 4.391869675198584,
+          "loc": 0.0,
+          "scale": 1234.3659713824386
+        },
+        "log_likelihood": -35054.59912846974,
+        "AIC": 70115.19825693947,
+        "BIC": 70134.74983651373,
+        "KS": 0.07046645858053237,
+        "KS_pvalue": 4.928455843616393e-22
+      },
+      {
+        "distribution": "exponential",
+        "parameters": {
+          "loc": 0.0,
+          "scale": 1133.1725374454345
+        },
+        "log_likelihood": -40163.88266572894,
+        "AIC": 80331.76533145788,
+        "BIC": 80344.79971784071,
+        "KS": 0.4446393055481538,
+        "KS_pvalue": 0.0
+      }
+    ],
+    "power_law_tail": {
+      "distribution": "power_law_tail",
+      "xmin": 1344.379126,
+      "alpha": 9.200014775269652,
+      "tail_count": 900,
+      "tail_fraction": 0.18,
+      "KS": 0.0331539865846443
+    }
+  }
+}
