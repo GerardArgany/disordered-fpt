@@ -61,6 +61,33 @@ function theory_mfpt(weights::Matrix{Float64})
     return mfpt
 end
 
+function theory_second_moment(weights::Matrix{Float64})
+    n_minus_1 = size(weights, 1)
+    b = weights[:, 1]
+    d = weights[:, 2]
+    ratios = d ./ b
+
+    # Inner sum: A_k = sum_{l=1}^k (1 / b_l) prod_{w=l+1}^k d_w / b_w.
+    inner_sums = zeros(Float64, n_minus_1)
+    inner_sums[1] = 1.0 / b[1]
+    for k in 2:n_minus_1
+        inner_sums[k] = 1.0 / b[k] + ratios[k] * inner_sums[k - 1]
+    end
+
+    second_sum = 0.0
+    for m in 1:n_minus_1
+        for i in 1:m
+            product = 1.0
+            for j in (i + 1):m
+                product *= ratios[j]
+            end
+            second_sum += (1.0 / b[i]) * sum(inner_sums[i:end]) * product
+        end
+    end
+
+    return 2.0 * second_sum - theory_mfpt(weights)
+end
+
 function vm_weights(n::Int)
     weights = zeros(n-1, 2)
     for i in 1:n-1
@@ -123,14 +150,19 @@ end
 function shuffled_mfpt_comparison(weights::Matrix{Float64}, n_shuffles::Int, n_runs::Int)
     theory_values = zeros(n_shuffles)
     simulation_values = zeros(n_shuffles)
+    theory_second_values = zeros(n_shuffles)
+    simulation_second_values = zeros(n_shuffles)
 
     for shuffle_index in 1:n_shuffles
         shuffled_weights = weights[randperm(size(weights, 1)), :]
         theory_values[shuffle_index] = theory_mfpt(shuffled_weights)
-        simulation_values[shuffle_index] = mfpt(shuffled_weights, n_runs)
+        theory_second_values[shuffle_index] = theory_second_moment(shuffled_weights)
+        samples = fpt_samples(shuffled_weights, n_runs)
+        simulation_values[shuffle_index], simulation_second_values[shuffle_index] =
+            fpt_moments(samples)
     end
 
-    return theory_values, simulation_values
+    return theory_values, simulation_values, theory_second_values, simulation_second_values
 end
 
 weights = vm_weights(300)
@@ -143,17 +175,21 @@ normal_first, normal_second = fpt_moments(normal_samples)
 mean_field_first, mean_field_second = fpt_moments(mean_field_samples)
 
 println("Normal mfpt: ", normal_first)
-println("Normal second FPT moment: ", sqrt(normal_second))
+println("Normal second FPT moment: ", normal_second)
 println("Mean field mfpt: ", mean_field_first)
-println("Mean field second FPT moment: ", sqrt(mean_field_second))
+println("Mean field second FPT moment: ", mean_field_second)
 println("Theory mfpt: ", theory_mfpt(weights))
+println("Theory second FPT moment: ", theory_second_moment(weights))
 
 Random.seed!(1234)
 n_shuffles = 100
 shuffle_runs = 1000
-theory_values, simulation_values = shuffled_mfpt_comparison(weights, n_shuffles, shuffle_runs)
+theory_values, simulation_values, theory_second_values, simulation_second_values =
+    shuffled_mfpt_comparison(weights, n_shuffles, shuffle_runs)
 println("Mean absolute shuffled MFPT error: ",
     sum(abs.(simulation_values .- theory_values)) / n_shuffles)
+println("Mean absolute shuffled second-moment error: ",
+    sum(abs.(simulation_second_values .- theory_second_values)) / n_shuffles)
 
 max_mfpt = 1.05 * maximum(vcat(theory_values, simulation_values))
 p_mfpt = scatter(theory_values, simulation_values;
@@ -167,6 +203,21 @@ plot!(p_mfpt, [0.0, max_mfpt], [0.0, max_mfpt];
     linestyle=:dash,
     color=:black)
 savefig(joinpath(figures_dir, "mfpt_theory_vs_simulation.png"))
+
+max_second_moment = 1.05 * maximum(vcat(theory_second_values, simulation_second_values))
+p_second_moment = scatter(theory_second_values, simulation_second_values;
+    label="Shuffled configurations",
+    xlabel="Theory second moment",
+    ylabel="Simulation second moment",
+    title="Theory vs simulation second FPT moment",
+    legend=:topleft)
+plot!(p_second_moment,
+    [0.0, max_second_moment],
+    [0.0, max_second_moment];
+    label="y = x",
+    linestyle=:dash,
+    color=:black)
+savefig(joinpath(figures_dir, "second_moment_theory_vs_simulation.png"))
 
 noises = [0.0001, 0.001, 0.01, 0.05]
 noisy_shuffles = 50
