@@ -6,7 +6,7 @@ using Plots
 using LinearAlgebra
 using Statistics
 
-figures_dir = joinpath(@__DIR__, "figures")
+figures_dir = joinpath(@__DIR__, "figures", "mf_no_stay")
 mkpath(figures_dir)
 
 function T_mean_field(b, N)

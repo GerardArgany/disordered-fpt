@@ -3,7 +3,7 @@ using Plots
 using Random
 using Statistics
 
-figures_dir = joinpath(@__DIR__, "figures")
+figures_dir = joinpath(@__DIR__, "figures", "annealing_max")
 mkpath(figures_dir)
 
 function calculate_MFPT(b::Vector{Float64})

@@ -1,7 +1,7 @@
 ENV["GKSwstype"] = "100"
 using Plots
 
-figures_dir = joinpath(@__DIR__, "figures")
+figures_dir = joinpath(@__DIR__, "figures", "frt")
 mkpath(figures_dir)
 
 function frt_sim(weights::Matrix{Float64})

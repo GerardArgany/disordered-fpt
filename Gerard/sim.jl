@@ -2,7 +2,7 @@ ENV["GKSwstype"] = "100"
 using Random
 using Plots
 
-figures_dir = joinpath(@__DIR__, "figures")
+figures_dir = joinpath(@__DIR__, "figures", "sim")
 mkpath(figures_dir)
 
 function fpt_sim(weights::Matrix{Float64})

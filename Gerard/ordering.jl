@@ -1,7 +1,7 @@
 ENV["GKSwstype"] = "100"
 using Plots
 
-figures_dir = joinpath(@__DIR__, "figures")
+figures_dir = joinpath(@__DIR__, "figures", "ordering")
 
 # Your original forward step function
 function calculate_MFPT(b::Vector{Float64})
