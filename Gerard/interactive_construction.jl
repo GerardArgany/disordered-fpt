@@ -182,4 +182,4 @@ function interactive_window(; L::Int = 15, n_vars::Int = 3)
 end
 
 # Run the app
-interactive_window(L=15, n_vars=5)
+interactive_window(L=7, n_vars=7)

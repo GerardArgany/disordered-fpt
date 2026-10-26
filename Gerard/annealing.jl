@@ -4,38 +4,42 @@ using Random
 using Statistics
 using LinearAlgebra
 
+# --- 1. Set Global Precision ---
+setprecision(64) # Sets BigFloat precision to 256 bits globally
+
 figures_dir = joinpath(@__DIR__, "figures", "annealing")
 mkpath(figures_dir)
 
-function calculate_MFPT(b::Vector{Float64})
+# --- 2. Use Parametric Types (T <: AbstractFloat) ---
+function calculate_MFPT(b::Vector{T}) where {T <: AbstractFloat}
     L = length(b) # This is N - 1
-    N = L + 1
+    N_val = T(L + 1)
     
-    total_sum = 0.0
+    total_sum = zero(T)
     # O(N^2) optimized evaluation instead of O(N^3) triple loop
     for i in 1:L
-        current_prod = 1.0
+        current_prod = one(T)
         for j in i:L
-            current_prod *= (1.0 - b[j]) / b[j]
+            current_prod *= (one(T) - b[j]) / b[j]
             total_sum += current_prod
         end
     end
     
-    return N + 2.0 * total_sum
+    return N_val + T(2.0) * total_sum
 end
 
-function calculate_MFPT_symmetric(b::Vector{Float64})
+function calculate_MFPT_symmetric(b::Vector{T}) where {T <: AbstractFloat}
     N_minus_1 = length(b)
-    mfpt = 0.0
+    mfpt = zero(T)
 
     for i in 1:N_minus_1
-        mfpt += (N_minus_1 + 1 - i) / b[i]
+        mfpt += T(N_minus_1 + 1 - i) / b[i]
     end
 
     return mfpt
 end
 
-function center_high_edge_low_initialization(b_random::Vector{Float64})
+function center_high_edge_low_initialization(b_random::Vector{T}) where {T <: AbstractFloat}
     n_positions = length(b_random)
     center = (n_positions + 1) / 2
     positions_from_center = sortperm(abs.((1:n_positions) .- center))
@@ -46,7 +50,7 @@ function center_high_edge_low_initialization(b_random::Vector{Float64})
     return initialized_b
 end
 
-function boundary_inward_extremes_ordering(b::Vector{Float64})
+function boundary_inward_extremes_ordering(b::Vector{T}) where {T <: AbstractFloat}
     sorted_b = sort(b)
     ordered_b = similar(b)
     left_position = 1
@@ -83,21 +87,21 @@ end
 
 
 function optimize_ordering(
-    b_initial::Vector{Float64};
+    b_initial::Vector{T};
     max_iter=100000,
     record_every=100,
     mfpt_function::Function=calculate_MFPT,
-)
+) where {T <: AbstractFloat}
     b_curr = copy(b_initial)
     T0_curr = mfpt_function(b_curr)
     
     b_best = copy(b_curr)
     T0_best = T0_curr
     
-    T = 1.0
-    cooling_rate = 0.9994
+    temp = T(1.0)
+    cooling_rate = T(0.9994)
     
-    convergence = Float64[T0_best]
+    convergence = T[T0_best]
     
     for iter in 1:max_iter
         # Pick two distinct indices to swap
@@ -113,7 +117,7 @@ function optimize_ordering(
         delta_rel = (T0_new - T0_curr) / T0_curr
         
         # Acceptance logic
-        if delta_rel < 0 || rand() < exp(-delta_rel / T)
+        if delta_rel < zero(T) || rand(T) < exp(-delta_rel / temp)
             b_curr = copy(b_new)
             T0_curr = T0_new
             
@@ -124,7 +128,7 @@ function optimize_ordering(
             end
         end
         
-        T *= cooling_rate
+        temp *= cooling_rate
         
         if iter % record_every == 0
             push!(convergence, T0_best)
@@ -144,13 +148,12 @@ function run_ensemble(
     max_iter::Int=300000,
     record_every::Int=10000,
     symmetric::Bool=false,
-    b_min::Float64=0.01,
+    b_min::Float64=0.01, # Keep API standard, convert internally
     b_max::Float64=0.99,
     case_name::String="normal",
     n_outliers::Int=0,
     outlier_min::Float64=0.01,
     outlier_max::Float64=0.99,
-    analyze_packets::Bool=false,
 )
     0.0 < b_min < b_max < 1.0 ||
         throw(ArgumentError("Require 0 < b_min < b_max < 1 for finite MFPTs"))
@@ -160,7 +163,6 @@ function run_ensemble(
         throw(ArgumentError("Require 0 < outlier_min < outlier_max < 1"))
 
     if symmetric
-        # For d = b, the stay probability is 1 - 2b, so b must be at most 0.5.
         mfpt_function = calculate_MFPT_symmetric
         output_prefix = "symmetric_"
     else
@@ -169,29 +171,25 @@ function run_ensemble(
     end
     
     println("Running $n_configurations annealing configurations (symmetric = $symmetric)...")
-    if n_outliers > 0
-        println("Random outlier range: [$outlier_min, $outlier_max]")
-        println("Number of outliers: ", n_outliers)
-    end
+    
     convergence_runs = Vector{Vector{Float64}}()
     optimized_configurations = Vector{Vector{Float64}}()
     optimized_mfpts = Float64[]
 
-    # Generate the base weights exactly ONCE outside the loop
-    base_random_weights = b_min .+ (b_max - b_min) .* rand(N - 1)
+    # --- 3. Initialize Arrays directly in 256-bit BigFloat ---
+    base_random_weights = BigFloat(b_min) .+ (BigFloat(b_max) - BigFloat(b_min)) .* rand(BigFloat, N - 1)
+    
     if n_outliers > 0
         outlier_positions = randperm(N - 1)[1:n_outliers]
-        outlier_values = outlier_min .+ (outlier_max - outlier_min) .* rand(n_outliers)
+        outlier_values = BigFloat(outlier_min) .+ (BigFloat(outlier_max) - BigFloat(outlier_min)) .* rand(BigFloat, n_outliers)
         base_random_weights[outlier_positions] = outlier_values
-        println("Injected outlier values: ", round.(outlier_values, digits=4))
     end
 
     for configuration_index in 1:n_configurations
         println("Configuration $configuration_index / $n_configurations")
         
-        # Apply the initialization to the exact same weights every time
         b_initial = if symmetric
-            center_high_edge_low_initialization(base_random_weights .* 0.45 .+ 0.05)
+            center_high_edge_low_initialization(base_random_weights .* BigFloat("0.45") .+ BigFloat("0.05"))
         else
             center_high_edge_low_initialization(base_random_weights)
         end
@@ -202,9 +200,11 @@ function run_ensemble(
             record_every=record_every,
             mfpt_function=mfpt_function,
         )
-        push!(optimized_configurations, b_opt)
-        push!(optimized_mfpts, T0_opt)
-        push!(convergence_runs, convergence)
+        
+        # Convert back to Float64 for plotting/saving to save memory
+        push!(optimized_configurations, Float64.(b_opt))
+        push!(optimized_mfpts, Float64(T0_opt))
+        push!(convergence_runs, Float64.(convergence))
     end
 
     n_recorded_points = length(convergence_runs[1])
@@ -236,20 +236,39 @@ function run_ensemble(
     best_indices = sortperm(optimized_mfpts)[1:min(10, n_configurations)]
     best_plots = Any[]
     for (rank, configuration_index) in enumerate(best_indices)
+        opt_config = optimized_configurations[configuration_index]
+        
         best_plot = plot(
             1:(N - 1),
-            optimized_configurations[configuration_index],
+            opt_config,
             color=:blue,
-            linewidth=1.5,
-            legend=false,
+            linewidth=2,
+            label="Annealed",
             xlabel="State i",
             ylabel="b_i",
             ylims=(0.0, symmetric ? 0.5 : 1.0),
             title="Rank $rank, MFPT=$(round(optimized_mfpts[configuration_index], digits=2))",
             grid=true,
+            legend=:topright,
+            legendfontsize=6,
         )
+        
+        if b_max <= 0.5
+            theoretical_opt = center_high_edge_low_initialization(opt_config)
+            theo_mfpt = Float64(mfpt_function(BigFloat.(theoretical_opt)))
+            
+            plot!(best_plot, 
+                  1:(N - 1), 
+                  theoretical_opt, 
+                  color=:red, 
+                  linestyle=:dash, 
+                  linewidth=1.5, 
+                  label="Theo: $(round(theo_mfpt, digits=2))")
+        end
+        
         push!(best_plots, best_plot)
     end
+    
     best_configurations_plot = plot(
         best_plots...,
         layout=(5, 2),
@@ -259,10 +278,10 @@ function run_ensemble(
     savefig(best_configurations_plot,
         joinpath(figures_dir, "$(output_prefix)ten_best_configurations.pdf"))
 
-   
     best_index = best_indices[1]
-    b_alternating = boundary_inward_extremes_ordering(optimized_configurations[best_index])
-    T0_alternating = mfpt_function(b_alternating)
+    b_alternating = Float64.(boundary_inward_extremes_ordering(BigFloat.(optimized_configurations[best_index])))
+    T0_alternating = Float64(mfpt_function(BigFloat.(b_alternating)))
+    
     println("Best optimized MFPT: ", round(optimized_mfpts[best_index], digits=4))
     println("Boundary-inward alternating MFPT: ", round(T0_alternating, digits=4))
     println("Boundary-inward alternating - optimized MFPT: ",
@@ -271,22 +290,22 @@ function run_ensemble(
 end
 
 
-run_ensemble(100;
-    n_configurations=100,
-    b_min=0.01,
-    b_max=0.99,
-    case_name="normal")
+# run_ensemble(100;
+#     n_configurations=100,
+#     b_min=0.01,
+#     b_max=0.99,
+#     case_name="normal")
 run_ensemble(50;
     n_configurations=100,
     b_min=0.01,
     b_max=0.49,
     case_name="b_below_half")
-run_ensemble(200;
-    n_configurations=100,
-    b_min=0.51,
-    b_max=0.99,
-    case_name="b_above_half",
-    )
+# run_ensemble(200;
+#     n_configurations=100,
+#     b_min=0.51,
+#     b_max=0.99,
+#     case_name="b_above_half",
+#     )
 # run_ensemble(50;
 #     n_configurations=100,
 #     b_min=0.01,
