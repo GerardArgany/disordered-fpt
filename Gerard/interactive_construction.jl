@@ -57,26 +57,60 @@ function calculate_variance(b::Vector{Float64}, mfpt::Float64)
 end
 
 # --- Pendulum Arrangement Generator ---
+# --- Off-center Pendulum Arrangement Generator ---
 
-function create_pendulum_arrangement(L::Int, custom_vals::Vector{Float64})
+# Largest value at index s, remaining values (descending) placed outward,
+# alternating sides in proportion to the number of free slots on each side.
+function create_offcenter_pendulum(L::Int, s::Int, custom_vals::Vector{Float64})
     all_vals = vcat(custom_vals, fill(0.5, L - length(custom_vals)))
-    sort!(all_vals)
-    
+    sort!(all_vals, rev = true)
+
     pend = zeros(Float64, L)
-    left = 1
-    right = L
-    
-    for i in 1:L
-        if isodd(i)
-            pend[left] = all_vals[i]
-            left += 1
+    pend[s] = all_vals[1]
+
+    nl = s - 1      # free slots to the left
+    nr = L - s      # free slots to the right
+    l = 0           # placed on the left
+    r = 0           # placed on the right
+
+    for i in 2:L
+        go_left = if l >= nl
+            false
+        elseif r >= nr
+            true
         else
-            pend[right] = all_vals[i]
-            right -= 1
+            (l + 1) / nl <= (r + 1) / nr
+        end
+
+        if go_left
+            l += 1
+            pend[s - l] = all_vals[i]
+        else
+            r += 1
+            pend[s + r] = all_vals[i]
         end
     end
-    
+
     return pend
+end
+
+# Scan every center s and keep the arrangement with the lowest MFPT
+function best_offcenter_pendulum(L::Int, custom_vals::Vector{Float64})
+    best_pend = fill(0.5, L)
+    best_mfpt = Inf
+    best_s = 1
+
+    for s in 1:L
+        pend = create_offcenter_pendulum(L, s, custom_vals)
+        mfpt = calculate_MFPT(pend)
+        if mfpt < best_mfpt
+            best_mfpt = mfpt
+            best_pend = pend
+            best_s = s
+        end
+    end
+
+    return best_pend, best_mfpt, best_s
 end
 
 # --- Optimized Permutation Search ---
@@ -146,6 +180,7 @@ function interactive_window(; L::Int = 15, n_vars::Int = 3)
     mfpt_val = Observable(0.0)
     var_val = Observable(0.0)
     pend_mfpt_val = Observable(0.0)
+    pend_s_val = Observable(1)
 
     onany(custom_vals, is_min_obs) do vals, is_min
         b_mfpt, m_mfpt, b_var, m_var = find_optimal_subspace(L, vals, is_min)
@@ -154,19 +189,20 @@ function interactive_window(; L::Int = 15, n_vars::Int = 3)
         mfpt_val[] = m_mfpt
         var_val[] = m_var
         
-        pend = create_pendulum_arrangement(L, vals)
+        pend, pend_m, pend_s = best_offcenter_pendulum(L, vals)
         pendulum_config[] = pend
-        pend_mfpt_val[] = calculate_MFPT(pend)
+        pend_mfpt_val[] = pend_m
+        pend_s_val[] = pend_s
     end
 
     notify(is_min_obs)
 
     # Overlaid MFPT and Pendulum plot
-    title_mfpt = @lift("Optimal MFPT = $(round($(mfpt_val), digits=2))  |  Pendulum MFPT = $(round($(pend_mfpt_val), digits=2))")
+    title_mfpt = @lift("Optimal MFPT = $(round($(mfpt_val), digits=2))  |  Off-center pendulum MFPT = $(round($(pend_mfpt_val), digits=2)) (s = $($pend_s_val))")
     ax_mfpt = Axis(fig[2, 1], title = title_mfpt, ylabel = "b value", xlabel = "Index")
-    
+
     barplot!(ax_mfpt, 1:L, best_mfpt_config, color=:dodgerblue, label="Optimal")
-    barplot!(ax_mfpt, 1:L, pendulum_config, color=:mediumpurple, width=0.3, label="Pendulum")
+    barplot!(ax_mfpt, 1:L, pendulum_config, color=:mediumpurple, width=0.3, label="Off-center pendulum")
     
     axislegend(ax_mfpt, position=:rt)
     ylims!(ax_mfpt, 0.0, 1.0)
